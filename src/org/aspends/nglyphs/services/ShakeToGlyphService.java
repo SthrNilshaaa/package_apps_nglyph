@@ -112,7 +112,11 @@ public class ShakeToGlyphService extends Service implements SensorEventListener 
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .build();
 
-        startForeground(4445, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        int foregroundType = 0;
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+             foregroundType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+        }
+        startForeground(4445, notification, foregroundType);
 
         updateSettings(); // Refresh settings if user just toggled something
         if (accelerometer != null) {

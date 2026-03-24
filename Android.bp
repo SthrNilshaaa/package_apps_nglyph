@@ -28,7 +28,7 @@ android_app {
         "androidx.core_core",
         "androidx.appcompat_appcompat",
         "com.google.android.material_material",
-        "androidx.constraintlayout_constraintlayout",
+        "androidx-constraintlayout_constraintlayout",
         "androidx.recyclerview_recyclerview",
         "androidx.preference_preference",
         "KetchumSDK",

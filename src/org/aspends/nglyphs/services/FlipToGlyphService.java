@@ -94,7 +94,11 @@ public class FlipToGlyphService extends Service implements SensorEventListener {
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .build();
 
-        startForeground(4447, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        int foregroundType = 0;
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+             foregroundType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+        }
+        startForeground(4447, notification, foregroundType);
     }
 
     /**
@@ -167,7 +171,7 @@ public class FlipToGlyphService extends Service implements SensorEventListener {
             } else {
                 // It's a built-in CSV pattern from assets/notification
                 GlyphEffects.play(this, "notification", style, vibrator, prefs.getInt("brightness", 2048));
-                sendBroadcast(new Intent(ACTION_REFRESH_ESSENTIAL));
+                sendBroadcast(new Intent(ACTION_REFRESH_ESSENTIAL).setPackage(getPackageName()));
             }
         });
     }

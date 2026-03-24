@@ -1,6 +1,7 @@
 package org.aspends.nglyphs.core;
 
-import org.aspends.nglyphs.R;
+import android.content.Context;
+import android.os.PowerManager;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,8 +19,8 @@ public class GlyphManagerV2 {
 
     private static GlyphManagerV2 instance;
     private final ExecutorService shellExecutor = Executors.newSingleThreadExecutor();
-    private android.os.PowerManager.WakeLock wakeLock;
-    private android.content.Context context;
+    private PowerManager.WakeLock wakeLock;
+    private Context context;
 
     public static synchronized GlyphManagerV2 getInstance() {
         if (instance == null) {
@@ -31,12 +32,12 @@ public class GlyphManagerV2 {
     private GlyphManagerV2() {
     }
 
-    public void init(android.content.Context context) {
+    public void init(Context context) {
         this.context = context.getApplicationContext();
-        android.os.PowerManager pm = (android.os.PowerManager) this.context
-                .getSystemService(android.content.Context.POWER_SERVICE);
+        PowerManager pm = (PowerManager) this.context
+                .getSystemService(Context.POWER_SERVICE);
         if (pm != null) {
-            wakeLock = pm.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "dGlyphs:HardwareExecutor");
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "dGlyphs:HardwareExecutor");
         }
     }
 
@@ -164,22 +165,6 @@ public class GlyphManagerV2 {
     public void setNativeEffect(NativeEffect effect, int value) {
         writeSysfs(effect.path, String.valueOf(value));
     }
-
-    public void toggleAll(boolean turnOn) {
-        int val = turnOn ? MAX_BRIGHTNESS : 0;
-        int[] frame = new int[15];
-        java.util.Arrays.fill(frame, val);
-        setFrame(frame);
-
-        if (!turnOn) {
-            setBrightness(Glyph.SINGLE_LED, 0);
-        }
-    }
-
-    public int clampBrightness(int brightness) {
-        return Math.max(0, Math.min(brightness, MAX_BRIGHTNESS));
-    }
-}
 
     public void toggleAll(boolean turnOn) {
         int val = turnOn ? MAX_BRIGHTNESS : 0;

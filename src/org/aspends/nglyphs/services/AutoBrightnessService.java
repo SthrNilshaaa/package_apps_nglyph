@@ -71,7 +71,11 @@ public class AutoBrightnessService extends Service implements SensorEventListene
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .build();
 
-        startForeground(4446, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        int foregroundType = 0;
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+             foregroundType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+        }
+        startForeground(4446, notification, foregroundType);
 
         scheduleCheck();
         return START_STICKY;
@@ -154,7 +158,7 @@ public class AutoBrightnessService extends Service implements SensorEventListene
 
             // Broadcast intent to refresh UI if MainActivity is open
             sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_BRIGHTNESS_UPDATED"));
-            sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL"));
+            sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL").setPackage(getPackageName()));
 
             if (prefs.getBoolean("is_light_on", false)) {
                 for (GlyphManagerV2.Glyph g : GlyphManagerV2.Glyph.getBasicGlyphs()) {

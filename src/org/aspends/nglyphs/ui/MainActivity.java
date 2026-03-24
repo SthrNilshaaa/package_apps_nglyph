@@ -461,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
                 stopService(shakeIntent);
                 stopService(autoBrightIntent);
             }
-            sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL"));
+            sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL").setPackage(getPackageName()));
             refreshUIState();
         });
 
@@ -892,7 +892,7 @@ public class MainActivity extends AppCompatActivity {
         if (val == 0) {
             GlyphManagerV2.getInstance().setBrightness(GlyphManagerV2.Glyph.SINGLE_LED, 0); // Explicit 0 allows natural
                                                                                             // toggles off
-            sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL"));
+            sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL").setPackage(getPackageName()));
         }
     }
 

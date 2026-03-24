@@ -57,12 +57,11 @@ public class VolumeObserverService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            startForeground(NOTIFICATION_ID, createNotification(),
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-        } else {
-            startForeground(NOTIFICATION_ID, createNotification());
+        int foregroundType = 0;
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+             foregroundType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
         }
+        startForeground(NOTIFICATION_ID, createNotification(), foregroundType);
 
         prefs = getSharedPreferences(getString(R.string.pref_file), MODE_PRIVATE);
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
