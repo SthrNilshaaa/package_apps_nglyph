@@ -1,0 +1,55 @@
+<resources>
+    <style name="Base.Theme.NGlyphs" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOutline">@color/outline_color</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorPrimary">@color/text_primary</item>
+    </style>
+
+    <style name="Theme.NGlyphs" parent="Base.Theme.NGlyphs" />
+
+    <style name="Theme.NGlyphs.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOutline">@color/outline_color</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorPrimary">@color/text_primary</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
+    </style>
+
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_up_in</item>
+        <item name="android:windowExitAnimation">@anim/slide_down_out</item>
+    </style>
+
+    <style name="DayButtonStyle" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="shapeAppearanceOverlay">@style/CircleShape</item>
+        <item name="android:fontFamily">@font/ndot_57</item>
+        <item name="android:textSize">14sp</item>
+        <item name="backgroundTint">@color/day_button_bg</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="CircleShape">
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="TextAppearance.CollapsingHeader" parent="TextAppearance.AppCompat.Display1">
+        <item name="android:fontFamily">@font/ndot_57</item>
+        <item name="android:textSize">40sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="TextAppearance.CollapsingHeaderSmall" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:fontFamily">@font/ndot_57</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+</resources>

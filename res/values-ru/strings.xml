@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_header">Glyph Интерфейс</string>
+    <string name="card_ringtones">Рингтоны</string>
+    <string name="card_notifications">Уведомления</string>
+    <string name="master_switch_label">Индикаторы Glyph</string>
+    <string name="tile_master_label">Индикаторы Glyph</string>
+    <string name="tile_light_label">Подсветка Glyph</string>
+    <string name="flip_to_glyph_label">Flip to Glyph</string>
+	<string name="flip_to_glyph_desc">Положите телефон экраном вниз для беззвучного режима и Glyph индикации</string>
+    <string name="pref_file">Настройки Glyph</string>
+    <string name="style_title">Стиль уведомлений</string>
+    <string name="cancel">Отмена</string>
+    <string-array name="notif_style_names">
+        <item>Статичный</item>
+        <item>Пульс</item>
+        <item>Быстрое мигание</item>
+        <item>oi!</item>
+        <item>nope</item>
+        <item>why</item>
+        <item>bulb one</item>
+        <item>bulb two</item>
+        <item>guiro</item>
+        <item>squiggle</item>
+    </string-array>
+    <string-array name="call_style_names">
+        <item>Статичный</item>
+        <item>Быстрое мигание</item>
+        <item>pneumatic</item>
+        <item>abra</item>
+        <item>squirrels</item>
+        <item>snaps</item>
+        <item>radiate</item>
+        <item>tennis</item>
+        <item>plot</item>
+        <item>scribble</item>
+    </string-array>
+	<string name="root_error_title">Ошибка Root</string>
+    <string name="root_error_message">Для работы этого приложения требуются root-права. Предоставьте доступ и перезапустите приложение.</string>
+    <string name="exit">Выйти</string>
+    <string name="features">Функции</string>
+    <string name="schedule">Расписание</string>
+    <string name="sleep_mode">Режим сна</string>
+    <string name="sleep_picker_start">Время начала</string>
+    <string name="sleep_picker_end">Время завершения</string>
+    <string name="sleep_time_format">%1$s — %2$s</string>
+    <string name="dialog_permission_notif_title">Доступ к уведомлениям</string>
+    <string name="dialog_permission_notif_message">Приложению нужен доступ к уведомлениям, чтобы управлять Glyph-подсветкой при входящих сообщениях.</string>
+    <string name="dialog_permission_call_title">Доступ к звонкам</string>
+    <string name="dialog_permission_call_message">Это необходимо для работы подсветки во время входящего вызова.</string>
+    <string name="btn_settings">Настройки</string>
+    <string name="btn_grant">Разрешить</string>
+    <string name="warning">Glyph Interface может быть небезопасен для больных эпилепсией и другими заболеваниями, сопровождающимися чувствительностью к свету.</string>
+    <string name="sleep_schedule_title">Расписание сна</string>
+    <string name="sleep_schedule_desc">Планирование выключения индикаторов Glyph в заданное время</string>
+    <string name="sleep_time_section">Время</string>
+    <string name="sleep_repeat_section">Повтор</string>
+    <string name="day_monday">M</string>
+    <string name="day_tuesday">T</string>
+    <string name="day_wednesday">W</string>
+    <string name="day_thursday">T</string>
+    <string name="day_friday">F</string>
+    <string name="day_saturday">S</string>
+    <string name="day_sunday">S</string>
+</resources>
