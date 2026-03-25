@@ -412,8 +412,9 @@ public class MainActivity extends AppCompatActivity {
             if (prefs.getBoolean("auto_brightness_enabled", false)) {
                 startService(autoBrightIntent);
             }
-            if (prefs.getBoolean("auto_brightness_enabled", false)) {
-                startService(autoBrightIntent);
+            if (prefs.getBoolean("assistant_mic_pulsing", false) || 
+                prefs.getBoolean("music_visualizer_enabled", false)) {
+                startService(new Intent(this, AudioVisualizerService.class));
             }
         }
     }
@@ -452,14 +453,16 @@ public class MainActivity extends AppCompatActivity {
                     startService(batteryIntent);
                 if (prefs.getBoolean("volume_bar_enabled", true))
                     startService(volumeIntent);
-                if (prefs.getBoolean("shake_enabled", false))
-                    startService(shakeIntent);
                 if (prefs.getBoolean("auto_brightness_enabled", false))
                     startService(autoBrightIntent);
+                if (prefs.getBoolean("assistant_mic_pulsing", false) || 
+                    prefs.getBoolean("music_visualizer_enabled", false))
+                    startService(new Intent(this, AudioVisualizerService.class));
             } else {
                 stopService(flipIntent);
                 stopService(shakeIntent);
                 stopService(autoBrightIntent);
+                stopService(new Intent(this, AudioVisualizerService.class));
             }
             sendBroadcast(new Intent("org.aspends.nglyphs.ACTION_REFRESH_ESSENTIAL").setPackage(getPackageName()));
             refreshUIState();
