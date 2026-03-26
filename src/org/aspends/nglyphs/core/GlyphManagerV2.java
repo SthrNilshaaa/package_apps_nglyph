@@ -1,15 +1,18 @@
 package org.aspends.nglyphs.core;
 
+import org.aspends.nglyphs.R;
+
+import com.topjohnwu.superuser.Shell;
 import android.content.Context;
 import android.os.PowerManager;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
+import android.util.Log;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Map;
+import java.util.Arrays;
 
 /**
- * Production-ready GlyphManager acting as a persistent system controller for the
+ * Production-ready GlyphManager acting as a persistent root controller for the
  * Nothing Phone LEDs.
  * Provides thread-safe, batched, IPC-optimized access to the hardware paths.
  */
@@ -85,33 +88,42 @@ public class GlyphManagerV2 {
     }
 
     public void setBrightness(Glyph glyph, int brightness) {
+        if (!isRootReady())
+            return;
+
         if (glyph == Glyph.SINGLE_LED) {
             int toggle = brightness > 0 ? 1 : 0;
             String effectPath = PATH_ROOT + "/video_leds_effect";
-            writeSysfs(effectPath, String.valueOf(toggle));
+            executeCommand("echo " + toggle + " > " + effectPath);
             return;
         }
 
         int safeBrightness = Math.max(0, Math.min(brightness, MAX_BRIGHTNESS));
-        writeSysfs(glyph.path, String.valueOf(safeBrightness));
+        executeCommand("echo " + safeBrightness + " > " + glyph.path);
     }
 
     /**
      * Updates multiple glyphs in a single shell command to reduce IPC overhead.
-     * Note: With System UID, we write sequentially or use a script if needed, 
-     * but direct file writes are fast enough.
      */
-    public void setGlyphBrightness(java.util.Map<Glyph, Integer> updates) {
-        if (updates == null || updates.isEmpty())
+    public void setGlyphBrightness(Map<Glyph, Integer> updates) {
+        if (!isRootReady() || updates == null || updates.isEmpty())
             return;
 
-        for (java.util.Map.Entry<Glyph, Integer> entry : updates.entrySet()) {
-            setBrightness(entry.getKey(), entry.getValue());
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Glyph, Integer> entry : updates.entrySet()) {
+            Glyph g = entry.getKey();
+            int b = Math.max(0, Math.min(entry.getValue(), MAX_BRIGHTNESS));
+            if (g == Glyph.SINGLE_LED) {
+                sb.append("echo ").append(b > 0 ? 1 : 0).append(" > ").append(PATH_ROOT).append("/video_leds_effect; ");
+            } else {
+                sb.append("echo ").append(b).append(" > ").append(g.path).append("; ");
+            }
         }
+        executeCommand(sb.toString());
     }
 
     public void setFrame(int[] values) {
-        if (values == null || values.length < 15)
+        if (!isRootReady() || values == null || values.length < 15)
             return;
 
         StringBuilder sb = new StringBuilder();
@@ -121,34 +133,35 @@ public class GlyphManagerV2 {
                 sb.append(" ");
         }
 
-        writeSysfs(PATH_ROOT + "/frame_leds_effect", sb.toString());
+        executeCommand("echo " + sb.toString() + " > " + PATH_ROOT + "/frame_leds_effect");
     }
 
     public void setBrightnessSingle(int index, int brightness) {
-        writeSysfs(PATH_ROOT + "/single_led_br", index + " " + Math.max(0, Math.min(brightness, MAX_BRIGHTNESS)));
+        if (!isRootReady())
+            return;
+
+        executeCommand("echo " + index + " " + Math.max(0, Math.min(brightness, MAX_BRIGHTNESS)) + " > " + PATH_ROOT
+                + "/single_led_br");
     }
 
-    private void writeSysfs(final String path, final String value) {
+    public void executeCommand(final String command) {
+        if (command == null || command.isEmpty() || !isRootReady()) return;
+
         shellExecutor.execute(() -> {
+            // Acquire WakeLock immediately before execution
             if (wakeLock != null) {
                 try {
-                    wakeLock.acquire(3000);
+                    wakeLock.acquire(3000); // 3s is plenty for single or batched sysfs writes
                 } catch (Exception ignored) {}
             }
 
-            FileOutputStream fos = null;
             try {
-                fos = new FileOutputStream(path);
-                fos.write(value.getBytes());
-                fos.flush();
-            } catch (IOException e) {
-                android.util.Log.e("GlyphManager", "Failed to write to " + path, e);
+                // Use .exec() for synchronous execution within the executor thread
+                // to ensure the WakeLock covers the entire operation accurately.
+                Shell.cmd(command).exec();
+            } catch (Exception e) {
+                Log.e("GlyphManager", "Shell execution failed: " + command, e);
             } finally {
-                if (fos != null) {
-                    try {
-                        fos.close();
-                    } catch (IOException ignored) {}
-                }
                 if (wakeLock != null && wakeLock.isHeld()) {
                     try {
                         wakeLock.release();
@@ -158,18 +171,28 @@ public class GlyphManagerV2 {
         });
     }
 
+    private boolean isRootReady() {
+        try {
+            return Shell.getShell().isRoot();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public void resetAll() {
         toggleAll(false);
     }
 
     public void setNativeEffect(NativeEffect effect, int value) {
-        writeSysfs(effect.path, String.valueOf(value));
+        if (!isRootReady())
+            return;
+        executeCommand("echo " + value + " > " + effect.path);
     }
 
     public void toggleAll(boolean turnOn) {
         int val = turnOn ? MAX_BRIGHTNESS : 0;
         int[] frame = new int[15];
-        java.util.Arrays.fill(frame, val);
+        Arrays.fill(frame, val);
         setFrame(frame);
 
         if (!turnOn) {

@@ -46,7 +46,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.material.slider.Slider;
+import com.topjohnwu.superuser.Shell;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,13 +199,21 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
 
-        AppListCache.loadAsync(MainActivity.this);
-        isMasterAllowed = prefs.getBoolean("master_allow", false);
-        currentBrightness = prefs.getInt("brightness", 2048);
-        setupInitialState();
-        setupListeners();
-        checkAllPermissions();
-        setupSmoothCollapse();
+        Shell.getShell(shell -> {
+            if (shell.isRoot()) {
+                runOnUiThread(() -> {
+                    AppListCache.loadAsync(MainActivity.this);
+                    isMasterAllowed = prefs.getBoolean("master_allow", false);
+                    currentBrightness = prefs.getInt("brightness", 2048);
+                    setupInitialState();
+                    setupListeners();
+                    checkAllPermissions();
+                    setupSmoothCollapse();
+                });
+            } else {
+                runOnUiThread(this::showRootError);
+            }
+        });
 
 
         brightnessReceiver = new android.content.BroadcastReceiver() {
@@ -1011,5 +1019,14 @@ public class MainActivity extends AppCompatActivity {
             float alpha = 0.2f + ((sliderValue - 1) / 4f) * 0.8f;
             spacewar.setAlpha(alpha);
         }
+    }
+
+    private void showRootError() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Root Access Required")
+                .setMessage("dGlyphs requires root access to control the Glyph LEDs directly. Please grant root permission in your superuser manager (Magisk/KernelSU) and restart the app.")
+                .setCancelable(false)
+                .setPositiveButton("Exit", (d, w) -> finish())
+                .show();
     }
 }
