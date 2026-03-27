@@ -19,7 +19,7 @@ android_app {
     resource_dirs: ["res"],
     asset_dirs: ["assets"],
 
-    sdk_version: "system_current",
+    sdk_version: "current",
     certificate: "platform",
 
     static_libs: [
@@ -29,13 +29,14 @@ android_app {
         "androidx-constraintlayout_constraintlayout",
         "androidx.recyclerview_recyclerview",
         "androidx.preference_preference",
-        "libsu-core",
         "KetchumSDK",
     ],
 
     optimize: {
         proguard_flags_files: ["proguard-rules.pro"],
     },
+
+    required: ["privapp_whitelist_org.aspends.nglyphs.xml"],
 }
 
 java_import {
@@ -43,12 +44,6 @@ java_import {
     jars: ["libs/KetchumSDK.jar"],
     sdk_version: "current",
 }
-
-//java_import {
-//    name: "libsu-core",
-//    jars: ["libs/libsu-core.jar"],
-//    sdk_version: "current",
-//}
 
 prebuilt_etc {
     name: "privapp_whitelist_org.aspends.nglyphs.xml",

@@ -1,6 +1,7 @@
 package org.aspends.nglyphs.util;
 
-import com.topjohnwu.superuser.Shell;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class FileUtils {
 
@@ -10,11 +11,20 @@ public class FileUtils {
     private static final String PATH_SINGLE = "/sys/class/leds/aw210xx_led/single_led_br";
 
     public static void writeLine(String fileName, String value) {
-        if (!Shell.getShell().isRoot())
-            return;
-
-        // Execute write action as root
-        Shell.cmd("echo '" + value + "' > " + fileName).submit();
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(fileName);
+            fos.write(value.getBytes());
+            fos.flush();
+        } catch (IOException e) {
+            android.util.Log.e("FileUtils", "Failed to write to " + fileName, e);
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException ignored) {}
+            }
+        }
     }
 
     public static void writeAllLed(int value) {

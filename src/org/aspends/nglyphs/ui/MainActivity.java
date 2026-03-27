@@ -5,6 +5,8 @@ import org.aspends.nglyphs.core.AnimationManager;
 import org.aspends.nglyphs.core.GlyphManagerV2;
 import org.aspends.nglyphs.services.*;
 import org.aspends.nglyphs.util.*;
+import org.aspends.nglyphs.util.ShellUtils;
+import org.aspends.nglyphs.util.RootNotificationHelper;
 
 import android.Manifest;
 import android.content.ComponentName;
@@ -26,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log; // Added for Log.i
 
 import java.io.File;
 import java.io.FileWriter;
@@ -46,7 +49,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
-import com.topjohnwu.superuser.Shell;
+import com.google.android.material.slider.Slider;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,21 +202,14 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
 
-        Shell.getShell(shell -> {
-            if (shell.isRoot()) {
-                runOnUiThread(() -> {
-                    AppListCache.loadAsync(MainActivity.this);
-                    isMasterAllowed = prefs.getBoolean("master_allow", false);
-                    currentBrightness = prefs.getInt("brightness", 2048);
-                    setupInitialState();
-                    setupListeners();
-                    checkAllPermissions();
-                    setupSmoothCollapse();
-                });
-            } else {
-                runOnUiThread(this::showRootError);
-            }
-        });
+        AppListCache.loadAsync(MainActivity.this);
+        isMasterAllowed = prefs.getBoolean("master_allow", false);
+        currentBrightness = prefs.getInt("brightness", 2048);
+        checkRootAccess();
+        setupUI();
+        setupListeners();
+        checkAllPermissions();
+        setupSmoothCollapse();
 
 
         brightnessReceiver = new android.content.BroadcastReceiver() {
@@ -330,7 +326,20 @@ public class MainActivity extends AppCompatActivity {
      * Sets the initial state of the UI components based on stored preferences
      * and master toggle permission.
      */
-    private void setupInitialState() {
+    private void checkRootAccess() {
+        new Thread(() -> {
+            boolean hasRoot = ShellUtils.isRootAvailable();
+            if (!hasRoot) {
+                runOnUiThread(() -> {
+                    android.widget.Toast.makeText(this, "Root access required for Glyph control!", android.widget.Toast.LENGTH_LONG).show();
+                });
+            } else {
+                Log.i("MainActivity", "Root access granted.");
+            }
+        }).start();
+    }
+
+    private void setupUI() {
         switchMaster.setChecked(isMasterAllowed);
         slider.setValue(mapBrightnessToPosition(prefs.getInt("brightness", 2048)));
         if (sliderTorch != null) {
@@ -1019,14 +1028,5 @@ public class MainActivity extends AppCompatActivity {
             float alpha = 0.2f + ((sliderValue - 1) / 4f) * 0.8f;
             spacewar.setAlpha(alpha);
         }
-    }
-
-    private void showRootError() {
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Root Access Required")
-                .setMessage("dGlyphs requires root access to control the Glyph LEDs directly. Please grant root permission in your superuser manager (Magisk/KernelSU) and restart the app.")
-                .setCancelable(false)
-                .setPositiveButton("Exit", (d, w) -> finish())
-                .show();
     }
 }

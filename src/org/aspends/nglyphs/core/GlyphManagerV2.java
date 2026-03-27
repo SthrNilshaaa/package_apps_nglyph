@@ -1,15 +1,9 @@
 package org.aspends.nglyphs.core;
 
 import org.aspends.nglyphs.R;
-
-import com.topjohnwu.superuser.Shell;
 import android.content.Context;
 import android.os.PowerManager;
-import android.util.Log;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.Map;
-import java.util.Arrays;
+import org.aspends.nglyphs.util.ShellUtils;
 
 /**
  * Production-ready GlyphManager acting as a persistent root controller for the
@@ -21,7 +15,6 @@ public class GlyphManagerV2 {
     private static final String PATH_ROOT = "/sys/class/leds/aw210xx_led";
 
     private static GlyphManagerV2 instance;
-    private final ExecutorService shellExecutor = Executors.newSingleThreadExecutor();
     private PowerManager.WakeLock wakeLock;
     private Context context;
 
@@ -37,8 +30,7 @@ public class GlyphManagerV2 {
 
     public void init(Context context) {
         this.context = context.getApplicationContext();
-        PowerManager pm = (PowerManager) this.context
-                .getSystemService(Context.POWER_SERVICE);
+        PowerManager pm = (PowerManager) this.context.getSystemService(Context.POWER_SERVICE);
         if (pm != null) {
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "dGlyphs:HardwareExecutor");
         }
@@ -88,29 +80,25 @@ public class GlyphManagerV2 {
     }
 
     public void setBrightness(Glyph glyph, int brightness) {
-        if (!isRootReady())
-            return;
-
         if (glyph == Glyph.SINGLE_LED) {
             int toggle = brightness > 0 ? 1 : 0;
             String effectPath = PATH_ROOT + "/video_leds_effect";
-            executeCommand("echo " + toggle + " > " + effectPath);
+            writeSysfs(effectPath, String.valueOf(toggle));
             return;
         }
 
         int safeBrightness = Math.max(0, Math.min(brightness, MAX_BRIGHTNESS));
-        executeCommand("echo " + safeBrightness + " > " + glyph.path);
+        writeSysfs(glyph.path, String.valueOf(safeBrightness));
     }
 
     /**
      * Updates multiple glyphs in a single shell command to reduce IPC overhead.
      */
-    public void setGlyphBrightness(Map<Glyph, Integer> updates) {
-        if (!isRootReady() || updates == null || updates.isEmpty())
-            return;
+    public void setGlyphBrightness(java.util.Map<Glyph, Integer> updates) {
+        if (updates == null || updates.isEmpty()) return;
 
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<Glyph, Integer> entry : updates.entrySet()) {
+        for (java.util.Map.Entry<Glyph, Integer> entry : updates.entrySet()) {
             Glyph g = entry.getKey();
             int b = Math.max(0, Math.min(entry.getValue(), MAX_BRIGHTNESS));
             if (g == Glyph.SINGLE_LED) {
@@ -119,88 +107,61 @@ public class GlyphManagerV2 {
                 sb.append("echo ").append(b).append(" > ").append(g.path).append("; ");
             }
         }
-        executeCommand(sb.toString());
+        executeRawCommand(sb.toString());
     }
 
     public void setFrame(int[] values) {
-        if (!isRootReady() || values == null || values.length < 15)
-            return;
+        if (values == null || values.length < 15) return;
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 15; i++) {
             sb.append(Math.max(0, Math.min(values[i], MAX_BRIGHTNESS)));
-            if (i < 14)
-                sb.append(" ");
+            if (i < 14) sb.append(" ");
         }
 
-        executeCommand("echo " + sb.toString() + " > " + PATH_ROOT + "/frame_leds_effect");
+        writeSysfs(PATH_ROOT + "/frame_leds_effect", sb.toString());
     }
 
     public void setBrightnessSingle(int index, int brightness) {
-        if (!isRootReady())
-            return;
-
-        executeCommand("echo " + index + " " + Math.max(0, Math.min(brightness, MAX_BRIGHTNESS)) + " > " + PATH_ROOT
-                + "/single_led_br");
+        writeSysfs(PATH_ROOT + "/single_led_br", index + " " + Math.max(0, Math.min(brightness, MAX_BRIGHTNESS)));
     }
 
-    public void executeCommand(final String command) {
-        if (command == null || command.isEmpty() || !isRootReady()) return;
+    private void writeSysfs(final String path, final String value) {
+        executeRawCommand("echo " + value + " > " + path);
+    }
 
-        shellExecutor.execute(() -> {
-            // Acquire WakeLock immediately before execution
-            if (wakeLock != null) {
-                try {
-                    wakeLock.acquire(3000); // 3s is plenty for single or batched sysfs writes
-                } catch (Exception ignored) {}
-            }
-
+    private void executeRawCommand(final String command) {
+        if (wakeLock != null) {
             try {
-                // Use .exec() for synchronous execution within the executor thread
-                // to ensure the WakeLock covers the entire operation accurately.
-                Shell.cmd(command).exec();
-            } catch (Exception e) {
-                Log.e("GlyphManager", "Shell execution failed: " + command, e);
-            } finally {
-                if (wakeLock != null && wakeLock.isHeld()) {
-                    try {
-                        wakeLock.release();
-                    } catch (Exception ignored) {}
-                }
-            }
-        });
+                wakeLock.acquire(3000);
+            } catch (Exception ignored) {}
+        }
+
+        ShellUtils.executeCommand(command);
+
+        if (wakeLock != null && wakeLock.isHeld()) {
+            try {
+                wakeLock.release();
+            } catch (Exception ignored) {}
+        }
     }
 
-    private boolean isRootReady() {
-        try {
-            return Shell.getShell().isRoot();
-        } catch (Exception e) {
-            return false;
-        }
+    public void setNativeEffect(NativeEffect effect, int value) {
+        writeSysfs(effect.path, String.valueOf(value));
     }
 
     public void resetAll() {
         toggleAll(false);
     }
 
-    public void setNativeEffect(NativeEffect effect, int value) {
-        if (!isRootReady())
-            return;
-        executeCommand("echo " + value + " > " + effect.path);
-    }
-
     public void toggleAll(boolean turnOn) {
         int val = turnOn ? MAX_BRIGHTNESS : 0;
         int[] frame = new int[15];
-        Arrays.fill(frame, val);
+        java.util.Arrays.fill(frame, val);
         setFrame(frame);
 
         if (!turnOn) {
             setBrightness(Glyph.SINGLE_LED, 0);
         }
-    }
-
-    public int clampBrightness(int brightness) {
-        return Math.max(0, Math.min(brightness, MAX_BRIGHTNESS));
     }
 }
