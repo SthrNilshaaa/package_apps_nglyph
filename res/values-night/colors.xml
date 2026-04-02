@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="window_background">#000000</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="outline_color">#99FFFFFF</color>
+    <color name="surface_variant">#1A1A1A</color>
+    <color name="day_button_bg">#333333</color>
+    <color name="gray_inactive_track">#33FFFFFF</color>
+    <color name="gray_active_thumb">#666666</color>
+</resources>
